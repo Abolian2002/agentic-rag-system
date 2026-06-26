@@ -1,0 +1,135 @@
+<svg width="760" height="452" viewBox="0 0 760 452" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<style>
+.m{font-family:'Courier New',Courier,monospace}
+@keyframes up{0%{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes blink{0%,44%{opacity:1}56%,100%{opacity:0}}
+.a0{animation:up .32s .3s  both}
+.a1{animation:up .32s .9s  both}
+.a2{animation:up .32s 1.5s both}
+.a3{animation:up .32s 2.0s both}
+.a4{animation:up .32s 2.5s both}
+.a5{animation:up .32s 3.0s both}
+.a6{animation:up .32s 3.5s both}
+.a7{animation:up .32s 4.1s both}
+.a8{animation:up .32s 4.7s both}
+.a9{animation:up .32s 5.2s both}
+.a10{animation:up .32s 5.7s both}
+.a11{animation:up .32s 6.3s both}
+.a12{animation:up .32s 6.9s both}
+.a13{animation:up .32s 7.4s both}
+.a14{animation:up .32s 7.9s both}
+.a15{animation:up .32s 8.4s both}
+.a16{animation:up .32s 8.9s both}
+.cur{animation:blink 1s 9.3s infinite}
+</style>
+</defs>
+
+<!-- Window -->
+<rect width="760" height="452" rx="12" fill="#0a0b12"/>
+<rect width="760" height="40" rx="12" fill="#111827"/>
+<rect y="28" width="760" height="12" fill="#111827"/>
+<circle cx="22" cy="20" r="6" fill="#ff5f57"/>
+<circle cx="44" cy="20" r="6" fill="#febc2e"/>
+<circle cx="66" cy="20" r="6" fill="#28c840"/>
+<text x="380" y="25" class="m" font-size="11" fill="#374151" text-anchor="middle">cortex-rag — Neural Observatory</text>
+
+<!-- Prompt -->
+<g class="a0">
+  <text x="22" y="65" class="m" font-size="13" fill="#8b7bff">❯</text>
+  <text x="40" y="65" class="m" font-size="13" fill="#e7e9f5">What are the main findings in the uploaded research paper?</text>
+</g>
+
+<!-- Div 1 -->
+<g class="a1">
+  <line x1="22" y1="77" x2="738" y2="77" stroke="#1f2937" stroke-width="1"/>
+</g>
+
+<!-- Cache -->
+<g class="a2">
+  <text x="22"  y="97" class="m" font-size="12" fill="#d97706">⟳</text>
+  <text x="40"  y="97" class="m" font-size="12" fill="#6b7280">Checking semantic cache</text>
+  <text x="738" y="97" class="m" font-size="12" fill="#ef4444" text-anchor="end">MISS</text>
+</g>
+
+<!-- RAG-Fusion -->
+<g class="a3">
+  <text x="22"  y="115" class="m" font-size="12" fill="#d97706">⟳</text>
+  <text x="40"  y="115" class="m" font-size="12" fill="#6b7280">RAG-Fusion · generating 3 query variants</text>
+  <text x="738" y="115" class="m" font-size="12" fill="#2dd4bf" text-anchor="end">OK</text>
+</g>
+
+<!-- Retrieve -->
+<g class="a4">
+  <text x="22"  y="133" class="m" font-size="12" fill="#d97706">⟳</text>
+  <text x="40"  y="133" class="m" font-size="12" fill="#6b7280">BM25 + FAISS + GraphRAG  →  15 candidates</text>
+  <text x="738" y="133" class="m" font-size="12" fill="#2dd4bf" text-anchor="end">OK</text>
+</g>
+
+<!-- Rerank -->
+<g class="a5">
+  <text x="22"  y="151" class="m" font-size="12" fill="#d97706">⟳</text>
+  <text x="40"  y="151" class="m" font-size="12" fill="#6b7280">Neural reranking  (CrossEncoder)</text>
+  <text x="738" y="151" class="m" font-size="12" fill="#2dd4bf" text-anchor="end">OK</text>
+</g>
+
+<!-- CRAG -->
+<g class="a6">
+  <text x="22"  y="169" class="m" font-size="12" fill="#8b7bff">✓</text>
+  <text x="40"  y="169" class="m" font-size="12" fill="#6b7280">CRAG ·</text>
+  <text x="97"  y="169" class="m" font-size="12" fill="#2dd4bf"> 9 / 12 chunks</text>
+  <text x="241" y="169" class="m" font-size="12" fill="#6b7280"> passed relevance check</text>
+</g>
+
+<!-- Div 2 -->
+<g class="a7">
+  <line x1="22" y1="181" x2="738" y2="181" stroke="#1f2937" stroke-width="1"/>
+</g>
+
+<!-- Think box -->
+<g class="a7">
+  <rect x="16" y="187" width="728" height="92" rx="6" fill="#0d1117" stroke="#8b7bff" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="30" y="205" class="m" font-size="12" fill="#8b7bff">🧠  Thinking...</text>
+</g>
+<g class="a8">
+  <text x="38" y="225" class="m" font-size="11" fill="#374151">  The paper discusses attention mechanism improvements. Most relevant: Results (Table 2)</text>
+</g>
+<g class="a9">
+  <text x="38" y="243" class="m" font-size="11" fill="#374151">  and ablation study. Chunks 3, 7, 9 score highest on the reranker.</text>
+</g>
+<g class="a10">
+  <text x="38" y="261" class="m" font-size="11" fill="#374151">  I'll structure the answer around three measurable outcomes.</text>
+</g>
+
+<!-- Div 3 -->
+<g class="a11">
+  <line x1="22" y1="291" x2="738" y2="291" stroke="#1f2937" stroke-width="1"/>
+</g>
+
+<!-- Answer -->
+<g class="a12">
+  <text x="22" y="313" class="m" font-size="13" fill="#e7e9f5">The paper's three key findings:</text>
+</g>
+<g class="a13">
+  <text x="22" y="333" class="m" font-size="12" fill="#c4c9e8">  1.  40% attention complexity reduction via sparse routing patterns</text>
+</g>
+<g class="a14">
+  <text x="22" y="351" class="m" font-size="12" fill="#c4c9e8">  2.  18% few-shot accuracy gain from a novel pre-training objective</text>
+</g>
+<g class="a15">
+  <text x="22" y="369" class="m" font-size="12" fill="#c4c9e8">  3.  Efficient local deployment  ·  &lt;2B parameter footprint verified</text>
+</g>
+
+<!-- Badges -->
+<g class="a16">
+  <rect x="22"  y="385" width="120" height="20" rx="3" fill="#13162c"/>
+  <text x="82"  y="399" class="m" font-size="10.5" fill="#8b7bff" text-anchor="middle">📄  3 sources cited</text>
+  <rect x="152" y="385" width="104" height="20" rx="3" fill="#13162c"/>
+  <text x="204" y="399" class="m" font-size="10.5" fill="#2dd4bf" text-anchor="middle">⚡  1.2 s total</text>
+  <rect x="266" y="385" width="152" height="20" rx="3" fill="#13162c"/>
+  <text x="342" y="399" class="m" font-size="10.5" fill="#d97706" text-anchor="middle">💾  cached for next time</text>
+</g>
+
+<!-- Cursor -->
+<rect class="cur" x="22" y="424" width="8" height="14" rx="1" fill="#8b7bff"/>
+</svg>

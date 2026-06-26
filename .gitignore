@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vector databases
+faiss_index/
+*.index
+chroma_db/
+.chroma/
+
+# Cache
+.cache/
+temp/
+
+# Logs and temp
+*.log
+uploads/
+tmp/
+
+# Environment files (local config)
+.env

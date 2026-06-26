@@ -1,0 +1,60 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cortex RAG logo">
+  <defs>
+    <linearGradient id="cx-grad" x1="40" y1="40" x2="160" y2="160" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8b7bff"/>
+      <stop offset="0.55" stop-color="#6ea8ff"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <radialGradient id="cx-core" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#c4b8ff"/>
+      <stop offset="0.5" stop-color="#8b7bff"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </radialGradient>
+    <filter id="cx-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- containment ring -->
+  <circle cx="100" cy="100" r="86" stroke="#2a2d52" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="100" cy="100" r="78" stroke="url(#cx-grad)" stroke-width="1.5" opacity="0.25"/>
+
+  <!-- synapse connections from core -->
+  <g stroke="url(#cx-grad)" stroke-width="2" opacity="0.45" stroke-linecap="round">
+    <path d="M96 100 L79.5 44"/>
+    <path d="M96 100 L40 100"/>
+    <path d="M96 100 L79.5 156"/>
+    <path d="M96 100 L115.5 42"/>
+    <path d="M96 100 L115.5 158"/>
+    <path d="M96 100 L51 66"/>
+    <path d="M96 100 L51 134"/>
+  </g>
+
+  <!-- neural "C" backbone -->
+  <path d="M146 61 L115.5 42 L79.5 44 L51 66 L40 100 L51 134 L79.5 156 L115.5 158 L146 139"
+        stroke="url(#cx-grad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" filter="url(#cx-glow)"/>
+
+  <!-- signal dots travelling -->
+  <circle cx="68" cy="100" r="2.6" fill="#2dd4bf"/>
+  <circle cx="88" cy="72" r="2.6" fill="#ffb347"/>
+  <circle cx="88" cy="128" r="2.6" fill="#8b7bff"/>
+
+  <!-- arc nodes -->
+  <g fill="#0a0b12" stroke="url(#cx-grad)" stroke-width="3">
+    <circle cx="146" cy="61" r="7"/>
+    <circle cx="115.5" cy="42" r="7"/>
+    <circle cx="79.5" cy="44" r="7"/>
+    <circle cx="51" cy="66" r="7"/>
+    <circle cx="40" cy="100" r="7"/>
+    <circle cx="51" cy="134" r="7"/>
+    <circle cx="79.5" cy="156" r="7"/>
+    <circle cx="115.5" cy="158" r="7"/>
+    <circle cx="146" cy="139" r="7"/>
+  </g>
+
+  <!-- cortex core -->
+  <circle cx="96" cy="100" r="13" fill="url(#cx-core)" filter="url(#cx-glow)"/>
+  <circle cx="96" cy="100" r="5" fill="#0a0b12" opacity="0.85"/>
+  <circle cx="96" cy="100" r="2.4" fill="#c4b8ff"/>
+</svg>

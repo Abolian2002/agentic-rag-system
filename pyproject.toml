@@ -1,0 +1,32 @@
+[project]
+name = "cortex-rag"
+version = "0.2.0"
+description = "Agentic RAG Knowledge Base System built with LangGraph"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "streamlit>=1.30",
+    "networkx>=3.0",
+    "requests>=2.31",
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "langchain>=0.3",
+    "langchain-community>=0.3",
+    "langchain-core>=0.3",
+    "langchain-ollama>=0.2",
+    "langchain-text-splitters>=0.3",
+    "langgraph>=0.2",
+    "chromadb>=0.5",
+    "sentence-transformers>=3.0",
+    "rank-bm25>=0.2",
+    "pydantic>=2.0",
+    "PyMuPDF>=1.23",
+    "docx2txt>=0.8",
+    "tqdm>=4.66",
+    "pypdf>=4.0",
+    "python-dotenv>=1.0",
+    "markdown>=3.5",
+]
+
+[tool.uv]
+dev-dependencies = []

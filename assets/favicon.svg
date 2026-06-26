@@ -1,0 +1,21 @@
+<svg width="64" height="64" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cortex RAG icon">
+  <defs>
+    <linearGradient id="f-grad" x1="40" y1="40" x2="160" y2="160" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8b7bff"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <radialGradient id="f-core" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#c4b8ff"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" rx="44" fill="#0a0b12"/>
+  <path d="M146 61 L115.5 42 L79.5 44 L51 66 L40 100 L51 134 L79.5 156 L115.5 158 L146 139"
+        stroke="url(#f-grad)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#0a0b12" stroke="url(#f-grad)" stroke-width="4">
+    <circle cx="146" cy="61" r="8"/><circle cx="79.5" cy="44" r="8"/><circle cx="40" cy="100" r="8"/>
+    <circle cx="79.5" cy="156" r="8"/><circle cx="146" cy="139" r="8"/>
+  </g>
+  <circle cx="96" cy="100" r="15" fill="url(#f-core)"/>
+  <circle cx="96" cy="100" r="3" fill="#0a0b12"/>
+</svg>
