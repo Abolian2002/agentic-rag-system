@@ -6,9 +6,11 @@
 
 ## 一、整体概述
 
-系统将整个 RAG 流程建模为 **LangGraph 驱动的循环状态机（Cyclic State Graph）**，而不是传统的线性函数链。每个节点承担单一职责，接收并返回类型化的状态（State）增量更新，条件边（Conditional Edge）根据中间结果（缓存是否命中、路由类型、检索置信度等）动态决定下一节点。
+系统将整个 RAG 流程建模为 **LangGraph 驱动的循环状态机（Cyclic State Graph）**，而非传统的线性函数链。每个节点承担单一职责，接收状态快照并返回**部分字段的增量更新**，条件边（Conditional Edge）根据中间结果（缓存是否命中、路由类型、检索置信度等）动态决定下一节点。
 
-State 是贯穿单次推理链路的类型化数据"黑板"，包含 query、route、documents、generation、confidence、steps 等字段，节点之间通过"读状态 → 计算 → 返回部分字段更新"推进流程。运行时（Runtime）= 编译后的图执行器 + MemorySaver 检查点 + 通过 config 注入的外部资源（检索器、模型客户端、缓存等）。
+**State（状态）** 是贯穿单次推理链路的**类型化结构化数据载体**（基于 TypedDict 定义），采用**黑板模式（Blackboard Pattern）**——所有节点通过读写 State 交换数据，节点之间不直接耦合。State 存储了完整流程的输入、中间产物与最终输出，包括：原始输入（query、chat_history）、中间决策（route、cache_hit、confidence、retrieval_attempts）、中间产物（transformed_queries、documents、thinking、generation）以及可观测性数据（steps、timeline）。每个节点读取当前 State 快照，计算后仅返回自己修改的字段，由运行时自动合并回全局 State。
+
+**运行时（Runtime）** = 编译后的图执行器 + MemorySaver 检查点机制 + 通过 config 注入的外部资源（检索器、模型客户端、缓存等）。Runtime 负责调度节点、沿条件边路由、合并状态增量、持久化检查点，是 State 的管理者和执行者。
 
 ### 四种可能的执行路径
 
@@ -97,7 +99,7 @@ State 是贯穿单次推理链路的类型化数据"黑板"，包含 query、rou
   存储已经计算过的 query 向量。同一次请求的不同节点（缓存检查需要 embedding、写回缓存又需要同一个 embedding）以及跨会话的相同字符串，都可直接复用，避免重复调用本地 embedding 模型。
 
 - **第二级：检索结果缓存**（精确匹配，key = 文本 hash）
-  缓存"query → 命中的 chunk 列表"映射。用户精确重复同一问题时，直接返回上次检索到的文档集合，跳过 BM25 + 向量 + GraphRAG + Rerank 整条检索管线。
+  缓存"query → 命中的 chunk 列表"映射。"用户精确重复同一问题时"，直接返回上次检索到的文档chunk，跳过 BM25 + 向量 + GraphRAG + Rerank 整条检索管线。
 
 - **第三级：答案缓存**（语义匹配，余弦相似度）
   存储完整的答案、思维链、来源列表。与前两级不同，它不是按字符串精确匹配，而是将新 query 的 embedding 与缓存中所有历史 query 的 embedding 逐一计算余弦相似度，若相似度 ≥ 0.92，则视为语义等价（如"LangGraph 是什么"和"解释一下 LangGraph"会命中同一答案），整条后续链路直接跳过。
@@ -128,6 +130,8 @@ State 是贯穿单次推理链路的类型化数据"黑板"，包含 query、rou
 
 **关键词**：HyDE、query rewriting、query expansion、RAG-Fusion、Reciprocal Rank Fusion (RRF)、lexical gap。
 
+**RRF** 是 Reciprocal Rank Fusion，用于融合多个检索器的排序结果。它不管文档的绝对分数，只看排名位置，公式是 Σ 1/(k + rank(d))。k=60 是平滑常数，避免除零并控制排名差异的权重。
+一句话记忆 ：RRF = 只看排名不看分数，1/(k+rank（d）) 加总，多检索器共识越多的文档排名越靠前。
 ---
 
 ### 节点 4：retrieve — 多路检索 + 重排 + CRAG 相关性分级

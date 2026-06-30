@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cortex RAG - Agentic Knowledge Base</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0b12;
+            --bg-soft: #0d1020;
+            --panel: #13162c;
+            --panel-2: #181c38;
+            --line: #23264a;
+            --iris: #8b7bff;
+            --iris-2: #6ea8ff;
+            --mint: #2dd4bf;
+            --amber: #ffb347;
+            --text: #e7e9f5;
+            --text-dim: #8b91b8;
+            --text-faint: #5a6090;
+            --rose: #ff6b8a;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background: radial-gradient(900px 500px at 12% -8%, rgba(139,123,255,0.14), transparent 60%),
+                        radial-gradient(800px 520px at 100% 0%, rgba(45,212,191,0.10), transparent 55%),
+                        var(--bg);
+            color: var(--text);
+            font-family: 'Manrope', 'Segoe UI', sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* 侧边栏 */
+        sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #11142a 0%, #0a0b16 100%);
+            border-right: 1px solid var(--line);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        sidebar h2 {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            color: #d8d4ff;
+            font-size: 1.35rem;
+            margin: 10px 0;
+        }
+        
+        sidebar h3 {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            color: #c2c7e6;
+            font-size: 1rem;
+            margin: 15px 0 10px;
+            border-top: 1px solid var(--line);
+            padding-top: 15px;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 13px;
+            border-radius: 999px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.73rem;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        
+        .status-ok { background: #0c2a1c; color: var(--mint); border: 1px solid #1f6f4a; }
+        .status-err { background: #2e0d12; color: var(--rose); border: 1px solid #7f2540; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: blink 1.6s infinite; }
+        @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+        
+        sidebar label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+        
+        sidebar input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--iris);
+        }
+        
+        sidebar select, sidebar input[type="number"], sidebar input[type="range"] {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 8px 12px;
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            margin: 5px 0;
+        }
+        
+        sidebar input[type="range"] {
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--line);
+        }
+        
+        sidebar input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--iris);
+            cursor: pointer;
+        }
+        
+        sidebar .slider-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-align: right;
+            margin-top: 2px;
+        }
+        
+        sidebar button {
+            background: linear-gradient(120deg, var(--iris), #5a61e0);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-family: 'Manrope', sans-serif;
+            font-weight: 600;
+            font-size: 0.86rem;
+            width: 100%;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .2s;
+            box-shadow: 0 4px 14px rgba(139,123,255,0.25);
+        }
+        
+        sidebar button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(139,123,255,0.4); }
+        sidebar button:active { transform: translateY(0); }
+        sidebar button.secondary { background: var(--panel); box-shadow: none; border: 1px solid var(--line); }
+        
+        /* 主内容区 */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 40px;
+            max-width: 960px;
+            overflow-y: auto;
+        }
+        
+        /* 顶部标题 */
+        header {
+            text-align: center;
+            margin: 20px 0 30px;
+        }
+        
+        header .title {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            background: linear-gradient(100deg, #ffffff 0%, #c4b8ff 55%, var(--mint) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3.1rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        
+        header .subtitle {
+            color: var(--iris);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.72rem;
+            letter-spacing: 0.32em;
+            margin: 10px 0;
+        }
+        
+        header .tag {
+            color: var(--text-faint);
+            font-size: 0.86rem;
+        }
+        
+        /* 状态标签 */
+        .chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin: 15px 0; }
+        .chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #aab0e0;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 4px 11px;
+        }
+        
+        /* 文档上传区 */
+        #upload-section {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        #upload-section h2 {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            color: var(--mint);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        #file-drop {
+            border: 2px dashed #3a3f6e;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all .3s;
+        }
+        
+        #file-drop:hover { border-color: var(--iris); color: var(--text); }
+        #file-drop.dragover { border-color: var(--mint); background: rgba(45,212,191,0.1); }
+        
+        #file-input { display: none; }
+        
+        #file-list { margin: 15px 0; }
+        #file-list .file-item {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin: 5px 0;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+        
+        /* 建议问题 */
+        #suggested-questions {
+            margin: 20px 0;
+            padding: 15px;
+            background: var(--panel);
+            border-radius: 12px;
+        }
+        
+        #suggested-questions h3 {
+            color: var(--iris);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .suggested-btn {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin: 5px;
+            transition: all .2s;
+        }
+        
+        .suggested-btn:hover { border-color: var(--iris); color: #fff; }
+        
+        /* 聊天区 */
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+        
+        .message {
+            background: rgba(19,22,44,0.45);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px 18px;
+            backdrop-filter: blur(4px);
+            max-width: 90%;
+        }
+        
+        .message.user { align-self: flex-end; background: rgba(139,123,255,0.1); border-color: var(--iris); }
+        .message.assistant { align-self: flex-start; }
+        
+        .message-content { font-size: 0.96rem; line-height: 1.65; }
+        
+        /* 思维链 */
+        .think-box {
+            background: linear-gradient(180deg, #0c0f22, #0a0b16);
+            border: 1px solid #2a2f5e;
+            border-left: 3px solid var(--iris);
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .think-box summary {
+            cursor: pointer;
+            padding: 10px 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.74rem;
+            font-weight: 600;
+            color: var(--iris);
+            letter-spacing: 0.06em;
+        }
+        
+        .think-body {
+            padding: 13px 17px;
+            font-size: 0.8rem;
+            color: #9aa0c8;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: pre-wrap;
+            line-height: 1.7;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+        
+        /* 工作流步骤 */
+        .workflow-box {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 10px 0;
+        }
+        
+        .workflow-box h4 {
+            color: var(--mint);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 6px 0;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+        
+        .step-dot.ok { background: var(--mint); box-shadow: 0 0 8px var(--mint); }
+        .step-dot.active { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+        
+        .step-name { color: var(--text); font-weight: 600; min-width: 100px; }
+        .step-detail { color: var(--text-dim); }
+        
+        /* 来源 */
+        .sources-box {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 10px 0;
+        }
+        
+        .sources-box h4 {
+            color: var(--mint);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .source-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--mint);
+            border-radius: 8px;
+            padding: 11px 15px;
+            margin: 7px 0;
+            font-size: 0.81rem;
+            color: #aab0d0;
+            line-height: 1.55;
+        }
+        
+        .source-label {
+            color: var(--mint);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        /* 输入区 */
+        #input-area {
+            display: flex;
+            gap: 10px;
+            padding: 15px 0;
+            border-top: 1px solid var(--line);
+            margin-top: 10px;
+        }
+        
+        #query-input {
+            flex: 1;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px 18px;
+            color: var(--text);
+            font-size: 0.95rem;
+            resize: none;
+            min-height: 50px;
+            max-height: 150px;
+            font-family: 'Manrope', sans-serif;
+        }
+        
+        #query-input:focus { outline: none; border-color: var(--iris); }
+        
+        #send-btn {
+            background: linear-gradient(120deg, var(--iris), #5a61e0);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 25px;
+            font-family: 'Manrope', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .2s;
+            box-shadow: 0 4px 14px rgba(139,123,255,0.25);
+        }
+        
+        #send-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(139,123,255,0.4); }
+        #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* 加载动画 */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--iris);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2a2f5e; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--iris); }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <sidebar>
+        <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 15px;">
+            <svg width="38" height="38" viewBox="0 0 200 200" fill="none">
+                <defs>
+                    <linearGradient id="hg" x1="40" y1="40" x2="160" y2="160">
+                        <stop offset="0" stop-color="#8b7bff"/>
+                        <stop offset="0.55" stop-color="#6ea8ff"/>
+                        <stop offset="1" stop-color="#2dd4bf"/>
+                    </linearGradient>
+                </defs>
+                <circle cx="100" cy="100" r="78" stroke="url(#hg)" stroke-width="1.5" opacity="0.25"/>
+                <circle cx="96" cy="100" r="13" fill="url(#hg)"/>
+                <circle cx="96" cy="100" r="5" fill="#0a0b12" opacity="0.85"/>
+            </svg>
+            <div>
+                <div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.35rem; color: #d8d4ff;">Cortex RAG</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.18em; color: #6a70a0;">API MODE</div>
+            </div>
+        </div>
+        
+        <div id="ollama-status" class="status-badge status-err">
+            <span class="dot"></span>
+            <span id="status-text">Checking...</span>
+        </div>
+        
+        <h3>🧠 Model</h3>
+        <select id="model-select">
+            <option value="qwen2.5:7b">qwen2.5:7b</option>
+        </select>
+        
+        <h3>📁 Documents</h3>
+        <div id="doc-stats" style="font-size: 0.85rem; color: var(--text-dim); margin: 5px 0;">
+            No documents loaded
+        </div>
+        
+        <h3>⚙️ Agentic RAG Settings</h3>
+        <label>
+            <input type="checkbox" id="enable-rag" checked>
+            Enable RAG
+        </label>
+        <label>
+            <input type="checkbox" id="enable-hyde" checked>
+            HyDE Query Expansion
+        </label>
+        <label>
+            <input type="checkbox" id="enable-reranking" checked>
+            Neural Reranking
+        </label>
+        <label>
+            <input type="checkbox" id="enable-graph-rag" checked>
+            GraphRAG
+        </label>
+        
+        <h3>🆕 Advanced (LangGraph)</h3>
+        <label>
+            <input type="checkbox" id="enable-fusion">
+            RAG-Fusion (RRF)
+        </label>
+        <label>
+            <input type="checkbox" id="enable-crag">
+            Corrective RAG (CRAG)
+        </label>
+        <label>
+            <input type="checkbox" id="enable-cache" checked>
+            Tiered Semantic Cache
+        </label>
+        <label>
+            <input type="checkbox" id="enable-citation-verify">
+            Citation Verification
+        </label>
+        <label>
+            <input type="checkbox" id="show-workflow" checked>
+            Show Workflow Steps
+        </label>
+        
+        <h3>🎛️ Generation</h3>
+        <label>
+            <input type="checkbox" id="enable-thinking" checked>
+            Show Thinking Process
+        </label>
+        
+        <label>Temperature</label>
+        <input type="range" id="temperature" min="0" max="1" step="0.05" value="0.3">
+        <div class="slider-value" id="temp-value">0.3</div>
+        
+        <label>Max Contexts</label>
+        <input type="number" id="max-contexts" min="1" max="8" value="4">
+        
+        <h3>⚡ Cache</h3>
+        <div id="cache-stats" style="font-size: 0.75rem; color: var(--text-faint); margin: 5px 0;">
+            Cache: 0 answers, 0 embeddings
+        </div>
+        
+        <button id="clear-btn" class="secondary">🗑️ Clear Chat & Cache</button>
+    </sidebar>
+    
+    <!-- 主内容 -->
+    <main>
+        <header>
+            <div class="title">Cortex RAG</div>
+            <div class="subtitle">AGENTIC RETRIEVAL ENGINE · FASTAPI</div>
+            <div class="tag">RAG that thinks, routes, retries, and verifies before it answers.</div>
+        </header>
+        
+        <!-- 状态标签 -->
+        <div class="chips" id="feature-chips">
+            <span class="chip">🔍 BM25+Chroma</span>
+            <span class="chip">🕸️ LangGraph</span>
+        </div>
+        
+        <!-- 文档上传区 -->
+        <div id="upload-section">
+            <h2>📁 Upload Documents</h2>
+            <div id="file-drop">
+                Drop PDF / DOCX / TXT / MD files here<br>
+                or click to select files
+                <input type="file" id="file-input" multiple accept=".pdf,.docx,.txt,.md,.markdown">
+            </div>
+            <div id="file-list"></div>
+            <button id="upload-btn">Upload & Process</button>
+        </div>
+        
+        <!-- 建议问题 -->
+        <div id="suggested-questions" style="display: none;">
+            <h3>💡 Suggested questions based on your documents:</h3>
+            <div id="suggested-btns"></div>
+        </div>
+        
+        <!-- 聊天区 -->
+        <div id="chat-container"></div>
+        
+        <!-- 输入区 -->
+        <div id="input-area">
+            <textarea id="query-input" placeholder="Ask about your documents..." rows="1"></textarea>
+            <button id="send-btn">Send</button>
+        </div>
+    </main>
+    
+    <script>
+        // API 基础 URL
+        const API_BASE = window.location.origin;
+        
+        // 全局状态
+        let documentsLoaded = false;
+        let chatHistory = [];
+        
+        // DOM 元素
+        const statusBadge = document.getElementById('ollama-status');
+        const statusText = document.getElementById('status-text');
+        const modelSelect = document.getElementById('model-select');
+        const docStats = document.getElementById('doc-stats');
+        const chatContainer = document.getElementById('chat-container');
+        const queryInput = document.getElementById('query-input');
+        const sendBtn = document.getElementById('send-btn');
+        const fileDrop = document.getElementById('file-drop');
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+        const uploadBtn = document.getElementById('upload-btn');
+        const uploadSection = document.getElementById('upload-section');
+        const suggestedSection = document.getElementById('suggested-questions');
+        const suggestedBtns = document.getElementById('suggested-btns');
+        const clearBtn = document.getElementById('clear-btn');
+        const cacheStats = document.getElementById('cache-stats');
+        const featureChips = document.getElementById('feature-chips');
+        const tempSlider = document.getElementById('temperature');
+        const tempValue = document.getElementById('temp-value');
+        
+        // 初始化
+        async function init() {
+            await checkStatus();
+            await loadModels();
+            await loadConfig();
+        }
+        
+        // 检查状态
+        async function checkStatus() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/status`);
+                const data = await resp.json();
+                
+                if (data.ollama_connected) {
+                    statusBadge.className = 'status-badge status-ok';
+                    statusText.textContent = 'Ollama connected';
+                } else {
+                    statusBadge.className = 'status-badge status-err';
+                    statusText.textContent = 'Ollama offline';
+                }
+                
+                documentsLoaded = data.documents_loaded;
+                if (documentsLoaded) {
+                    uploadSection.style.display = 'none';
+                    await loadStats();
+                }
+            } catch (e) {
+                statusBadge.className = 'status-badge status-err';
+                statusText.textContent = 'API error';
+            }
+        }
+        
+        // 加载模型列表
+        async function loadModels() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/models`);
+                const data = await resp.json();
+                modelSelect.innerHTML = '';
+                data.models.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    modelSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Failed to load models:', e);
+            }
+        }
+        
+        // 加载配置
+        async function loadConfig() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/config`);
+                const data = await resp.json();
+                
+                document.getElementById('enable-rag').checked = data.rag_enabled;
+                document.getElementById('enable-hyde').checked = data.enable_hyde;
+                document.getElementById('enable-reranking').checked = data.enable_reranking;
+                document.getElementById('enable-graph-rag').checked = data.enable_graph_rag;
+                document.getElementById('enable-fusion').checked = data.enable_fusion;
+                document.getElementById('enable-crag').checked = data.enable_crag;
+                document.getElementById('enable-cache').checked = data.enable_cache;
+                document.getElementById('enable-citation-verify').checked = data.enable_citation_verify;
+                document.getElementById('show-workflow').checked = data.show_workflow;
+                document.getElementById('enable-thinking').checked = data.enable_thinking;
+                tempSlider.value = data.temperature;
+                tempValue.textContent = data.temperature;
+                document.getElementById('max-contexts').value = data.max_contexts;
+                
+                if (data.cache_stats) {
+                    cacheStats.textContent = `Cache: ${data.cache_stats.answers} answers, ${data.cache_stats.embeddings} embeddings`;
+                }
+                
+                modelSelect.value = data.model;
+            } catch (e) {
+                console.error('Failed to load config:', e);
+            }
+        }
+        
+        // 加载统计
+        async function loadStats() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/stats`);
+                const data = await resp.json();
+                docStats.innerHTML = `
+                    ✓ ${data.document_count} documents, ${data.chunk_count} chunks<br>
+                    <button id="reset-docs-btn" class="secondary" style="margin-top: 10px;">🔄 Reset Documents</button>
+                `;
+                
+                document.getElementById('reset-docs-btn')?.addEventListener('click', async () => {
+                    await fetch(`${API_BASE}/api/clear`, { method: 'POST' });
+                    location.reload();
+                });
+                
+                // 加载建议问题
+                if (documentsLoaded) {
+                    const sqResp = await fetch(`${API_BASE}/api/suggested-questions`);
+                    const sqData = await sqResp.json();
+                    if (sqData.questions.length > 0) {
+                        suggestedSection.style.display = 'block';
+                        suggestedBtns.innerHTML = '';
+                        sqData.questions.forEach(q => {
+                            const btn = document.createElement('button');
+                            btn.className = 'suggested-btn';
+                            btn.textContent = q;
+                            btn.onclick = () => askQuestion(q);
+                            suggestedBtns.appendChild(btn);
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load stats:', e);
+            }
+        }
+        
+        // 上传文件
+        let selectedFiles = [];
+        
+        fileDrop.addEventListener('click', () => fileInput.click());
+        fileDrop.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileDrop.classList.add('dragover');
+        });
+        fileDrop.addEventListener('dragleave', () => {
+            fileDrop.classList.remove('dragover');
+        });
+        fileDrop.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDrop.classList.remove('dragover');
+            selectedFiles = Array.from(e.dataTransfer.files);
+            showFileList();
+        });
+        fileInput.addEventListener('change', () => {
+            selectedFiles = Array.from(fileInput.files);
+            showFileList();
+        });
+        
+        function showFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach(f => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.textContent = `📄 ${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+                fileList.appendChild(item);
+            });
+        }
+        
+        uploadBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) {
+                alert('Please select files first');
+                return;
+            }
+            
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<span class="spinner"></span> Processing...';
+            
+            const formData = new FormData();
+            selectedFiles.forEach(f => formData.append('files', f));
+            
+            try {
+                const resp = await fetch(`${API_BASE}/api/upload`, {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    uploadSection.style.display = 'none';
+                    await checkStatus();
+                    await loadStats();
+                    suggestedSection.style.display = 'block';
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert('Upload failed: ' + e.message);
+            }
+            
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload & Process';
+        });
+        
+        // 发送查询
+        sendBtn.addEventListener('click', () => {
+            const query = queryInput.value.trim();
+            if (query) askQuestion(query);
+        });
+        
+        queryInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+        
+        async function askQuestion(query) {
+            // 显示用户消息
+            addMessage('user', query);
+            queryInput.value = '';
+            
+            // 禁用发送按钮
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner"></span>';
+            
+            // 获取配置
+            const config = {
+                model: modelSelect.value,
+                rag_enabled: document.getElementById('enable-rag').checked,
+                enable_hyde: document.getElementById('enable-hyde').checked,
+                enable_reranking: document.getElementById('enable-reranking').checked,
+                enable_graph_rag: document.getElementById('enable-graph-rag').checked,
+                enable_fusion: document.getElementById('enable-fusion').checked,
+                enable_crag: document.getElementById('enable-crag').checked,
+                enable_cache: document.getElementById('enable-cache').checked,
+                enable_citation_verify: document.getElementById('enable-citation-verify').checked,
+                enable_thinking: document.getElementById('enable-thinking').checked,
+                temperature: parseFloat(tempSlider.value),
+                max_contexts: parseInt(document.getElementById('max-contexts').value),
+                show_workflow: document.getElementById('show-workflow').checked,
+            };
+            
+            // 发送请求
+            try {
+                const resp = await fetch(`${API_BASE}/api/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, chat_history: chatHistory.slice(-10), config }),
+                });
+                const data = await resp.json();
+                
+                // 显示助手消息
+                addAssistantMessage(data);
+                
+                // 更新聊天历史
+                chatHistory.push({ role: 'user', content: query });
+                chatHistory.push({ role: 'assistant', content: data.answer });
+                
+                // 更新缓存统计
+                if (config.enable_cache) {
+                    await loadConfig();
+                }
+            } catch (e) {
+                addMessage('assistant', 'Error: ' + e.message);
+            }
+            
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send';
+        }
+        
+        function addMessage(role, content) {
+            const msg = document.createElement('div');
+            msg.className = `message ${role}`;
+            msg.innerHTML = `<div class="message-content">${content}</div>`;
+            chatContainer.appendChild(msg);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function addAssistantMessage(data) {
+            const msg = document.createElement('div');
+            msg.className = 'message assistant';
+            
+            // 缓存命中标记
+            if (data.cache_hit) {
+                msg.innerHTML += '<div style="color: var(--mint); font-size: 0.8rem; margin-bottom: 10px;">⚡ Served from semantic cache</div>';
+            } else if (data.route === 'chat') {
+                msg.innerHTML += '<div style="color: var(--amber); font-size: 0.8rem; margin-bottom: 10px;">💬 Chat mode (no retrieval)</div>';
+            }
+            
+            // 思维链
+            if (data.thinking && document.getElementById('enable-thinking').checked) {
+                msg.innerHTML += `
+                    <details class="think-box">
+                        <summary>🧠 THOUGHT PROCESS · click to expand ✓</summary>
+                        <div class="think-body">${data.thinking}</div>
+                    </details>
+                `;
+            }
+            
+            // 工作流步骤
+            if (data.workflow_steps && data.workflow_steps.length > 0 && document.getElementById('show-workflow').checked) {
+                let stepsHtml = '<div class="workflow-box"><h4>🔄 LangGraph Workflow (' + data.workflow_steps.length + ' nodes)</h4>';
+                data.workflow_steps.forEach((s, i) => {
+                    const isLast = i === data.workflow_steps.length - 1;
+                    const dotClass = isLast ? 'active' : 'ok';
+                    let detail = '';
+                    
+                    if (s.step === 'route' && s.info?.route) detail = `→ ${s.info.route}`;
+                    if (s.step === 'cache_check' && s.info?.hit) detail = '⚡ HIT';
+                    if (s.step === 'retrieve') detail = `${s.info?.found || 0} docs`;
+                    if (s.step === 'generate') detail = `${s.info?.answer_len || 0} chars`;
+                    
+                    stepsHtml += `
+                        <div class="step-item">
+                            <div class="step-dot ${dotClass}"></div>
+                            <div class="step-name">${s.step}</div>
+                            <div class="step-detail">${detail}</div>
+                        </div>
+                    `;
+                });
+                stepsHtml += '</div>';
+                msg.innerHTML += stepsHtml;
+            }
+            
+            // 答案
+            msg.innerHTML += `<div class="message-content">${data.answer}</div>`;
+            
+            // 来源
+            if (data.sources && data.sources.length > 0) {
+                let sourcesHtml = '<details class="sources-box"><summary>📄 Sources (' + data.sources.length + ') - click to expand</summary>';
+                data.sources.forEach((s, i) => {
+                    sourcesHtml += `
+                        <div class="source-card">
+                            <span class="source-label">Source ${i + 1}</span>
+                            ${s.substring(0, 400)}${s.length > 400 ? '…' : ''}
+                        </div>
+                    `;
+                });
+                sourcesHtml += '</details>';
+                msg.innerHTML += sourcesHtml;
+            }
+            
+            chatContainer.appendChild(msg);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // 清空
+        clearBtn.addEventListener('click', async () => {
+            await fetch(`${API_BASE}/api/clear`, { method: 'POST' });
+            chatContainer.innerHTML = '';
+            chatHistory = [];
+            await checkStatus();
+            await loadConfig();
+            uploadSection.style.display = 'block';
+            suggestedSection.style.display = 'none';
+        });
+        
+        // 温度滑块
+        tempSlider.addEventListener('input', () => {
+            tempValue.textContent = tempSlider.value;
+        });
+        
+        // 配置更新（当切换选项时）
+        sidebar.querySelectorAll('input[type="checkbox"], input[type="number"], input[type="range"]').forEach(el => {
+            el.addEventListener('change', async () => {
+                const config = {
+                    model: modelSelect.value,
+                    rag_enabled: document.getElementById('enable-rag').checked,
+                    enable_hyde: document.getElementById('enable-hyde').checked,
+                    enable_reranking: document.getElementById('enable-reranking').checked,
+                    enable_graph_rag: document.getElementById('enable-graph-rag').checked,
+                    enable_fusion: document.getElementById('enable-fusion').checked,
+                    enable_crag: document.getElementById('enable-crag').checked,
+                    enable_cache: document.getElementById('enable-cache').checked,
+                    enable_citation_verify: document.getElementById('enable-citation-verify').checked,
+                    enable_thinking: document.getElementById('enable-thinking').checked,
+                    enable_contextual: false,
+                    temperature: parseFloat(tempSlider.value),
+                    max_contexts: parseInt(document.getElementById('max-contexts').value),
+                    show_workflow: document.getElementById('show-workflow').checked,
+                };
+                
+                await fetch(`${API_BASE}/api/config`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config),
+                });
+                
+                // 更新 feature chips
+                updateFeatureChips();
+            });
+        });
+        
+        function updateFeatureChips() {
+            const chips = ['🔍 BM25+Chroma', '🕸️ LangGraph'];
+            if (document.getElementById('enable-fusion').checked) chips.push('🔀 RAG-Fusion');
+            if (document.getElementById('enable-graph-rag').checked) chips.push('🕸️ GraphRAG');
+            if (document.getElementById('enable-reranking').checked) chips.push('⚡ Reranked');
+            if (document.getElementById('enable-crag').checked) chips.push('✅ CRAG+Retry');
+            if (document.getElementById('enable-hyde').checked && !document.getElementById('enable-fusion').checked) chips.push('🧬 HyDE');
+            if (document.getElementById('enable-cache').checked) chips.push('💾 Cache');
+            if (document.getElementById('enable-thinking').checked) chips.push('🧠 Thinking');
+            
+            featureChips.innerHTML = chips.map(c => `<span class="chip">${c}</span>`).join('');
+        }
+        
+        // 初始化
+        init();
+        updateFeatureChips();
+    </script>
+</body>
+</html>
